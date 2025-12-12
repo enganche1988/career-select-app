@@ -1,0 +1,55 @@
+// 開発環境用データベース: SQLite 利用（Prisma 6.x形式）
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String          @id @default(uuid())
+  name          String
+  email         String          @unique
+  password      String
+  consultations Consultation[]
+  reviews       Review[]
+  createdAt     DateTime        @default(now())
+}
+
+model Consultant {
+  id            String          @id @default(uuid())
+  name          String
+  profile       String
+  email         String          @unique
+  password      String
+  consultations Consultation[]
+  reviews       Review[]
+  createdAt     DateTime        @default(now())
+}
+
+model Consultation {
+  id            String      @id @default(uuid())
+  consultant    Consultant  @relation(fields: [consultantId], references: [id])
+  consultantId  String
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String
+  scheduledAt   DateTime
+  status        String      // 'scheduled' | 'completed'
+  reviews       Review[]
+  createdAt     DateTime    @default(now())
+}
+
+model Review {
+  id              String        @id @default(uuid())
+  type            String        // 'consultation' | 'outcome'
+  content         String
+  user            User          @relation(fields: [userId], references: [id])
+  userId          String
+  consultant      Consultant    @relation(fields: [consultantId], references: [id])
+  consultantId    String
+  consultation    Consultation? @relation(fields: [consultationId], references: [id])
+  consultationId  String?
+  createdAt       DateTime      @default(now())
+}
