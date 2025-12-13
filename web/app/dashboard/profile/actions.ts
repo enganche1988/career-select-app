@@ -3,13 +3,45 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { put } from '@vercel/blob';
 
 export async function updateConsultantProfile(formData: FormData) {
   const consultantId = formData.get('consultantId') as string;
   const name = String(formData.get('name'));
   const email = formData.get('email') ? String(formData.get('email')) : null;
   const headline = formData.get('headline') ? String(formData.get('headline')) : null;
-  const thumbnailUrl = formData.get('thumbnailUrl') ? String(formData.get('thumbnailUrl')) : null;
+  
+  // ファイルアップロード処理
+  let thumbnailUrl = formData.get('thumbnailUrl') ? String(formData.get('thumbnailUrl')) : null;
+  const thumbnailFile = formData.get('thumbnailFile') as File | null;
+  
+  if (thumbnailFile && thumbnailFile.size > 0) {
+    try {
+      // ファイルサイズチェック（5MB制限）
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (thumbnailFile.size > maxSize) {
+        throw new Error('ファイルサイズは5MB以下にしてください');
+      }
+
+      // ファイルタイプチェック
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (!allowedTypes.includes(thumbnailFile.type)) {
+        throw new Error('画像ファイル（JPEG、PNG、WebP、GIF）のみアップロードできます');
+      }
+
+      // Vercel Blob Storageにアップロード
+      const blob = await put(`consultants/${consultantId}-${Date.now()}-${thumbnailFile.name}`, thumbnailFile, {
+        access: 'public',
+        contentType: thumbnailFile.type,
+      });
+      
+      thumbnailUrl = blob.url;
+    } catch (error) {
+      console.error('ファイルアップロードエラー:', error);
+      // エラーが発生した場合は既存のURLを保持
+      // またはエラーメッセージを返す（今回は既存URLを保持）
+    }
+  }
   const twitterUrl = formData.get('twitterUrl') ? String(formData.get('twitterUrl')) : null;
   const linkedinUrl = formData.get('linkedinUrl') ? String(formData.get('linkedinUrl')) : null;
   const schedulerUrl = formData.get('schedulerUrl') ? String(formData.get('schedulerUrl')) : null;

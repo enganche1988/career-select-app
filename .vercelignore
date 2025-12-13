@@ -1,0 +1,7 @@
+# Vercelビルド時に無視するファイル・ディレクトリ
+# ルートのprismaディレクトリは古いSQLite設定のため無視
+prisma/
+node_modules/
+*.db
+*.db-journal
+
