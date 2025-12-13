@@ -1,7 +1,14 @@
 import { prisma } from '@/lib/prisma';
 import { updateConsultantProfile } from './actions';
 import Link from 'next/link';
-import { parseStringArray } from '@/lib/types/consultant';
+
+// parseStringArray関数を直接定義（古いコミット対応）
+function parseStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.map(v => String(v)).filter(v => v.length > 0);
+  }
+  return [];
+}
 
 const EXPERTISE_ROLES = [
   'エンジニア',
