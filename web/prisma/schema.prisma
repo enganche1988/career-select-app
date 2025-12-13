@@ -1,0 +1,101 @@
+// Prisma 6.xスキーマ（CareerSelect POC）
+// PostgreSQL (Neon) を使用
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  createdAt     DateTime       @default(now())
+  consultations Consultation[]
+  consultant    Consultant?
+  reviews       Review[]
+}
+
+model Consultant {
+  id                    String         @id @default(uuid())
+  email                 String?        @unique // 認証・ログイン用（認証導入時に必須化予定）
+  name                  String
+  bio                   String? // 旧フィールド（後方互換性のため残す）
+  specialties           String? // カンマ区切り文字列（後方互換性のため残す）
+  experienceYears       Int
+  createdAt             DateTime       @default(now())
+  userId                String?        @unique
+  user                  User?          @relation(fields: [userId], references: [id])
+  consultations         Consultation[]
+  reviews               Review[]
+  // ↓↓↓ プロフィール関連フィールド
+  headline              String? // 一言キャッチ（例：「元大手人事／スタートアップ採用支援」）
+  profileSummary        String? // 自己紹介文（中程度の長さ）
+  achievementsSummary   String? // 実績サマリー（実績ハイライト）
+  expertiseRoles        Json? // 得意な職種（例：["エンジニア","営業","バックオフィス"]）
+  expertiseCompanyTypes Json? // 得意な企業群（例：["大企業","スタートアップ","メガベンチャー"]）
+  // ↓↓↓ SNS・リンク関連
+  twitterUrl            String? // XプロフィールURL（https://twitter.com/...）
+  linkedinUrl           String? // LinkedIn プロフィールURL
+  schedulerUrl          String? // 予約ページURL（TimeLexなど）
+  thumbnailUrl          String? // 顔写真 or サムネイル画像URL
+  // ↓↓↓ 将来の自動生成用
+  profileSourceRaw      String? // 将来、自動生成の元になる生テキスト
+  // ↓↓↓ 実績・統計情報
+  totalSupportCount     Int            @default(0) // 累計支援人数（OGP表示用）
+  // ↓↓↓ 検索軸プロフィール（ConsultantProfileモデル移行前の暫定実装）
+  ageRange              String? // 年代（20s_early, 20s_late, 30s_early, 30s_late, 40s_plus）※UIでは必須、DBはnullable（既存データ対応）
+  education             String? // 学歴（high_school, vocational, university, graduate）
+  previousIndustry     String? // 前職業界
+  previousJobFunction   String? // 前職職種
+  previousCompanies     Json? // 前職企業リスト（配列）
+  // ↓↓↓ 検索用配列フィールド（検索頻度が高いため配列型で実装）
+  specialtyIndustries   String[] @default([]) // 得意業界（配列）※検索に使用、インデックス推奨
+  specialtyJobFunctions String[] @default([]) // 得意職種（配列）※検索に使用、インデックス推奨
+  // ↓↓↓ 自己申告実績（ConsultantProfileモデル移行前の暫定実装）
+  selfReportedCareerYears          Int? // キャリア年数（experienceYearsと同期）
+  selfReportedTotalSupports        Int? // 累計支援人数（totalSupportCountと同期）
+  selfReportedTotalPlacements      Int? // 累計転職成功数
+  selfReportedAverageAnnualIncome  Int? // 平均年収（支援した人の、万円単位）
+  // ↓↓↓ 旧フィールド（後方互換性のため残す）
+  snsFollowersTwitter   Int? // X(Twitter)フォロワー数
+  snsFollowersLinkedin  Int? // LinkedInフォロワー数
+  snsFollowersInstagram Int? // Instagramフォロワー数
+  externalLinks         Json? // [{ title, url, type }] 配列で格納
+  timelexUrl            String? // このコンサルタント専用のTimeLex予約ページURL（任意）
+  twitterHandle         String? // 「@」なしのX(旧Twitter)ユーザー名
+}
+
+model Consultation {
+  id            String     @id @default(uuid())
+  user          User       @relation(fields: [userId], references: [id])
+  userId        String
+  consultant    Consultant @relation(fields: [consultantId], references: [id])
+  consultantId  String
+  scheduledAt   DateTime
+  status        String // "scheduled" | "completed" | "canceled" | "scheduled_request" | "pending"
+  theme         String? // 相談したいテーマ
+  note          String? // 補足メモや詳細情報
+  meetingMethod String? // "phone" | "zoom" 希望する連絡手段
+  reviews       Review[]
+  createdAt     DateTime   @default(now())
+}
+
+model Review {
+  id             String        @id @default(uuid())
+  user           User?         @relation(fields: [userId], references: [id])
+  userId         String? // 匿名レビューの場合はnullでもOK
+  consultant     Consultant    @relation(fields: [consultantId], references: [id])
+  consultantId   String
+  consultation   Consultation? @relation(fields: [consultationId], references: [id])
+  consultationId String?
+  type           String // "consultation" | "outcome"
+  score          Int
+  comment        String // 良かった点
+  meta           Json? // 属性情報・サブ評価・改善コメントなどをJSONで保存
+  isApproved     Boolean       @default(false) // 運営承認フラグ
+  createdAt      DateTime      @default(now())
+}
