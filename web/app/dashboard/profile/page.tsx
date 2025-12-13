@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { updateConsultantProfile } from './actions';
 import Link from 'next/link';
-import { parseStringArray } from '@/lib/types/consultant';
 import {
   AGE_RANGES,
   EDUCATION_CATEGORIES,
@@ -10,6 +9,22 @@ import {
   EXPERTISE_TAGS,
 } from '@/lib/constants/profileOptions';
 import ConsultantSelector from './ConsultantSelector';
+
+// parseStringArray関数をファイル内に直接定義（importに頼らない）
+function parseStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed.filter((v): v is string => typeof v === "string");
+    } catch {}
+    // CSVっぽい入力も許容
+    return trimmed.split(",").map(s => s.trim()).filter(Boolean);
+  }
+  return [];
+}
 
 const EXPERTISE_ROLES = [
   'エンジニア',

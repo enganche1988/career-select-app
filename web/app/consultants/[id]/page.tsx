@@ -167,6 +167,7 @@ export default async function ConsultantDetailPage({
   
   if (!consultant) {
     // ダミーデータにも該当IDがない場合は、最初のダミーを使用
+    const { getMockConsultants } = await import('@/lib/mockData');
     const mockConsultants = getMockConsultants();
     consultant = {
       ...mockConsultants[0],
