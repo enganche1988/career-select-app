@@ -1,3 +1,6 @@
+import CanvaSection from './ui/CanvaSection';
+import CanvaCard from './ui/CanvaCard';
+
 const problems = [
   {
     icon: '🎲',
@@ -27,31 +30,26 @@ const problems = [
 
 export default function ProblemSection() {
   return (
-    <section className="w-full py-16 bg-white">
-      <div className="max-w-6xl mx-auto px-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 text-center">
-          転職エージェントに、こんな不安はありませんか？
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-          {problems.map((problem, index) => (
-            <div
-              key={index}
-              className="p-6 rounded-xl border border-gray-200 bg-white hover:shadow-md transition"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0">
-                  {problem.icon}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{problem.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{problem.description}</p>
-                </div>
+    <CanvaSection variant="light">
+      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-center">
+        転職エージェントに、こんな不安はありませんか？
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+        {problems.map((problem, index) => (
+          <CanvaCard key={index} className="p-8">
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-3xl flex-shrink-0 shadow-sm">
+                {problem.icon}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{problem.title}</h3>
+                <p className="text-base text-gray-700 leading-relaxed">{problem.description}</p>
               </div>
             </div>
-          ))}
-        </div>
+          </CanvaCard>
+        ))}
       </div>
-    </section>
+    </CanvaSection>
   );
 }
 

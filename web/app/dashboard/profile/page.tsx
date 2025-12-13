@@ -1,14 +1,15 @@
 import { prisma } from '@/lib/prisma';
 import { updateConsultantProfile } from './actions';
 import Link from 'next/link';
-
-// parseStringArray関数を直接定義（古いコミット対応）
-function parseStringArray(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value.map(v => String(v)).filter(v => v.length > 0);
-  }
-  return [];
-}
+import { parseStringArray } from '@/lib/types/consultant';
+import {
+  AGE_RANGES,
+  EDUCATION_CATEGORIES,
+  INDUSTRIES,
+  JOB_FUNCTIONS,
+  EXPERTISE_TAGS,
+} from '@/lib/constants/profileOptions';
+import ConsultantSelector from './ConsultantSelector';
 
 const EXPERTISE_ROLES = [
   'エンジニア',
@@ -48,6 +49,18 @@ async function getCurrentConsultant(consultantId?: string) {
   });
 }
 
+async function getAllConsultants() {
+  try {
+    return await prisma.consultant.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+  } catch (error) {
+    console.error('データベース接続エラー:', error);
+    return [];
+  }
+}
+
 export default async function ConsultantProfileEditPage({
   searchParams,
 }: {
@@ -55,15 +68,26 @@ export default async function ConsultantProfileEditPage({
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const consultant = await getCurrentConsultant(resolvedSearchParams?.consultantId);
+  const allConsultants = await getAllConsultants();
   
   if (!consultant) return <div>コンサルタントデータがありません</div>;
 
   // 型安全な変換を使用
   const currentRoles = parseStringArray(consultant.expertiseRoles);
   const currentCompanyTypes = parseStringArray(consultant.expertiseCompanyTypes);
+  
+  // オンライン対応可の判定（schedulerUrlまたはtimelexUrlがあるか）
+  const isOnlineAvailable = !!(consultant.schedulerUrl || consultant.timelexUrl);
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
+      {/* Acting as の明示 */}
+      <ConsultantSelector
+        currentConsultantId={consultant.id}
+        currentConsultantName={consultant.name}
+        consultants={allConsultants}
+      />
+      
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">プロフィール編集</h2>
         <p className="text-sm text-gray-600 mb-1">
@@ -153,26 +177,33 @@ export default async function ConsultantProfileEditPage({
                 className="border rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">選択してください</option>
-                <option value="20s_early">20代前半</option>
-                <option value="20s_late">20代後半</option>
-                <option value="30s_early">30代前半</option>
-                <option value="30s_late">30代後半</option>
-                <option value="40s_plus">40代以上</option>
+                {AGE_RANGES.map((range) => (
+                  <option key={range.value} value={range.value}>
+                    {range.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block mb-1 font-medium text-sm">学歴（任意）</label>
+              <label className="block mb-1 font-medium text-sm">学歴カテゴリ *（検索用・ファーストビュー表示用）</label>
               <select
                 name="education"
+                required
                 defaultValue={(consultant as any).education || ''}
                 className="border rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">選択してください</option>
-                <option value="high_school">高校卒業</option>
-                <option value="vocational">専門学校卒業</option>
-                <option value="university">大学卒業</option>
-                <option value="graduate">大学院卒業</option>
+                {EDUCATION_CATEGORIES.map((edu) => (
+                  <option key={edu.value} value={edu.value}>
+                    {edu.label}
+                  </option>
+                ))}
               </select>
+              <p className="text-xs text-gray-500 mt-1">
+                検索に使用されます（必須）。早慶・旧帝大など具体的なカテゴリを選択すると、ファーストビューに表示されます。
+                <br />
+                ※ 「大学卒業（その他）」「大学院卒業（その他）」は詳細セクションでのみ表示されます
+              </p>
             </div>
             <div>
               <label className="block mb-1 font-medium text-sm">前職業界（任意）</label>
@@ -182,14 +213,11 @@ export default async function ConsultantProfileEditPage({
                 className="border rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">選択してください</option>
-                <option value="it_internet">IT・インターネット</option>
-                <option value="saas_startup">SaaS / スタートアップ</option>
-                <option value="mega_venture">メガベンチャー</option>
-                <option value="manufacturing">製造業</option>
-                <option value="finance">金融</option>
-                <option value="consulting">コンサルティング</option>
-                <option value="retail">小売・流通</option>
-                <option value="other">その他</option>
+                {INDUSTRIES.map((industry) => (
+                  <option key={industry.value} value={industry.value}>
+                    {industry.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -200,15 +228,11 @@ export default async function ConsultantProfileEditPage({
                 className="border rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">選択してください</option>
-                <option value="engineer">エンジニア</option>
-                <option value="pdm_pm">PM / PdM</option>
-                <option value="designer">デザイナー</option>
-                <option value="sales">営業</option>
-                <option value="marketing">マーケティング</option>
-                <option value="hr">人事</option>
-                <option value="finance">経理・財務</option>
-                <option value="consultant">コンサルタント</option>
-                <option value="other">その他</option>
+                {JOB_FUNCTIONS.map((job) => (
+                  <option key={job.value} value={job.value}>
+                    {job.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -275,16 +299,7 @@ export default async function ConsultantProfileEditPage({
               <label className="block mb-2 font-medium text-sm">得意業界 *（検索用、複数選択可）</label>
               <p className="text-xs text-gray-500 mb-2">検索・マッチングに使用されます</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {[
-                  { value: 'it_internet', label: 'IT・インターネット' },
-                  { value: 'saas_startup', label: 'SaaS / スタートアップ' },
-                  { value: 'mega_venture', label: 'メガベンチャー' },
-                  { value: 'manufacturing', label: '製造業' },
-                  { value: 'finance', label: '金融' },
-                  { value: 'consulting', label: 'コンサルティング' },
-                  { value: 'retail', label: '小売・流通' },
-                  { value: 'other', label: 'その他' },
-                ].map((industry) => (
+                {INDUSTRIES.map((industry) => (
                   <label
                     key={industry.value}
                     className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
@@ -307,31 +322,21 @@ export default async function ConsultantProfileEditPage({
               <label className="block mb-2 font-medium text-sm">得意職種 *（検索用、複数選択可）</label>
               <p className="text-xs text-gray-500 mb-2">検索・マッチングに使用されます</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {[
-                  { value: 'engineer', label: 'エンジニア' },
-                  { value: 'pdm_pm', label: 'PM / PdM' },
-                  { value: 'designer', label: 'デザイナー' },
-                  { value: 'sales', label: '営業' },
-                  { value: 'marketing', label: 'マーケティング' },
-                  { value: 'hr', label: '人事' },
-                  { value: 'finance', label: '経理・財務' },
-                  { value: 'consultant', label: 'コンサルタント' },
-                  { value: 'other', label: 'その他' },
-                ].map((job) => (
+                {EXPERTISE_TAGS.map((tag) => (
                   <label
-                    key={job.value}
+                    key={tag.value}
                     className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       name="specialtyJobFunctions"
-                      value={job.value}
+                      value={tag.value}
                       defaultChecked={Array.isArray((consultant as any).specialtyJobFunctions) 
-                        ? (consultant as any).specialtyJobFunctions.includes(job.value)
+                        ? (consultant as any).specialtyJobFunctions.includes(tag.value)
                         : false}
                       className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm">{job.label}</span>
+                    <span className="text-sm">{tag.label}</span>
                   </label>
                 ))}
               </div>
@@ -374,6 +379,22 @@ export default async function ConsultantProfileEditPage({
               />
               <p className="text-xs text-gray-500 mt-1">TimeLexなどの予約ページのURL</p>
             </div>
+            <div>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="onlineAvailable"
+                  defaultChecked={isOnlineAvailable}
+                  className="w-4 h-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                />
+                <span className="ml-2 text-sm font-medium text-gray-700">
+                  オンライン相談対応可
+                </span>
+              </label>
+              <p className="text-xs text-gray-500 mt-1 ml-6">
+                予約ページURLが設定されている場合、自動的にオンライン対応可として表示されます
+              </p>
+            </div>
           </div>
         </div>
 
@@ -383,7 +404,7 @@ export default async function ConsultantProfileEditPage({
           <p className="text-xs text-gray-500 mb-4">これらの情報は検索・マッチングに使用されます。正確に入力してください。</p>
           <div className="space-y-4">
             <div>
-              <label className="block mb-1 font-medium text-sm">キャリア年数 *</label>
+              <label className="block mb-1 font-medium text-sm">コンサルタント歴 *</label>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
@@ -396,6 +417,7 @@ export default async function ConsultantProfileEditPage({
                 />
                 <span className="text-sm text-gray-600">年</span>
               </div>
+              <p className="text-xs text-gray-500 mt-1">※ 空欄または0の場合は非公開（表示されません）</p>
             </div>
             <div>
               <label className="block mb-1 font-medium text-sm">累計支援人数（任意）</label>
@@ -409,6 +431,7 @@ export default async function ConsultantProfileEditPage({
                 />
                 <span className="text-sm text-gray-600">名</span>
               </div>
+              <p className="text-xs text-gray-500 mt-1">※ 空欄または0の場合は非公開（表示されません）</p>
             </div>
             <div>
               <label className="block mb-1 font-medium text-sm">累計転職成功数（任意）</label>
@@ -422,20 +445,7 @@ export default async function ConsultantProfileEditPage({
                 />
                 <span className="text-sm text-gray-600">名</span>
               </div>
-            </div>
-            <div>
-              <label className="block mb-1 font-medium text-sm">平均年収（任意）</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  name="selfReportedAverageAnnualIncome"
-                  min="0"
-                  defaultValue={(consultant as any).selfReportedAverageAnnualIncome || ''}
-                  className="border rounded-lg p-2.5 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-600">万円</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">※ 支援した方の平均年収</p>
+              <p className="text-xs text-gray-500 mt-1">※ 空欄または0の場合は非公開（表示されません）</p>
             </div>
           </div>
         </div>

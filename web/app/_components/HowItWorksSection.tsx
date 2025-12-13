@@ -1,3 +1,6 @@
+import CanvaSection from './ui/CanvaSection';
+import CanvaCard from './ui/CanvaCard';
+
 const steps = [
   {
     number: '1',
@@ -21,29 +24,27 @@ const steps = [
 
 export default function HowItWorksSection() {
   return (
-    <section className="w-full py-16 bg-white">
-      <div className="max-w-6xl mx-auto px-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-12 text-center">
-          How it works
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {steps.map((step, index) => (
-            <div key={index} className="text-center">
-              <div className="relative mb-6">
-                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-3xl mx-auto mb-4">
-                  {step.icon}
-                </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-blue-700 text-white flex items-center justify-center font-bold text-sm">
-                  {step.number}
-                </div>
+    <CanvaSection variant="light">
+      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-16 text-center">
+        How it works
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {steps.map((step, index) => (
+          <CanvaCard key={index} className="p-8 text-center">
+            <div className="relative mb-8">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-4xl mx-auto shadow-sm">
+                {step.icon}
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">{step.title}</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{step.description}</p>
+              <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-600 to-emerald-700 text-white flex items-center justify-center font-bold text-base shadow-lg">
+                {step.number}
+              </div>
             </div>
-          ))}
-        </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">{step.title}</h3>
+            <p className="text-base text-gray-700 leading-relaxed">{step.description}</p>
+          </CanvaCard>
+        ))}
       </div>
-    </section>
+    </CanvaSection>
   );
 }
 

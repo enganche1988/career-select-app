@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import ConsultantsClient from './ConsultantsClient';
 import { Consultant } from '@prisma/client';
+import { getMockConsultants } from '@/lib/mockData';
 
 type ConsultantWithReviews = Consultant & {
   reviews: Array<{ type: string; score: number }>;
@@ -19,8 +20,8 @@ export default async function ConsultantsPage() {
     consultants = result as ConsultantWithReviews[];
   } catch (error) {
     console.error('データベース接続エラー:', error);
-    // Vercel環境などでSQLiteファイルにアクセスできない場合のフォールバック
-    // エラーメッセージを表示するか、空の配列を返す
+    // DB接続失敗時はダミーデータを使用
+    consultants = getMockConsultants();
   }
 
   return <ConsultantsClient consultants={consultants} />;

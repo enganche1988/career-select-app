@@ -45,6 +45,10 @@ export async function updateConsultantProfile(formData: FormData) {
   const twitterUrl = formData.get('twitterUrl') ? String(formData.get('twitterUrl')) : null;
   const linkedinUrl = formData.get('linkedinUrl') ? String(formData.get('linkedinUrl')) : null;
   const schedulerUrl = formData.get('schedulerUrl') ? String(formData.get('schedulerUrl')) : null;
+  
+  // オンライン対応可（トグル）
+  // 注意: オンライン対応可の判定はschedulerUrlまたはtimelexUrlの存在で行う
+  // トグルは表示用のみ（実際の判定はschedulerUrlの有無で行う）
   const profileSummary = formData.get('profileSummary') ? String(formData.get('profileSummary')) : null;
   const achievementsSummary = formData.get('achievementsSummary')
     ? String(formData.get('achievementsSummary'))
@@ -68,18 +72,25 @@ export async function updateConsultantProfile(formData: FormData) {
     ? previousCompaniesStr.split(',').map(s => s.trim()).filter(s => s.length > 0)
     : [];
 
-  // 自己申告実績
-  const selfReportedCareerYears = formData.get('selfReportedCareerYears')
-    ? parseInt(String(formData.get('selfReportedCareerYears')), 10)
+  // オンライン対応可（トグル）
+  const onlineAvailable = formData.get('onlineAvailable') === 'on';
+  // オンライン対応可の場合、schedulerUrlが必須ではないが、設定されている場合は保持
+  // schedulerUrlが空でonlineAvailableがtrueの場合、既存のURLを保持
+
+  // 自己申告実績（数値系は空＝非公開、0は表示しない）
+  const selfReportedCareerYearsStr = formData.get('selfReportedCareerYears') ? String(formData.get('selfReportedCareerYears')) : '';
+  const selfReportedCareerYears = selfReportedCareerYearsStr && selfReportedCareerYearsStr !== '0'
+    ? parseInt(selfReportedCareerYearsStr, 10)
     : null;
-  const selfReportedTotalSupports = formData.get('selfReportedTotalSupports')
-    ? parseInt(String(formData.get('selfReportedTotalSupports')), 10)
+  
+  const selfReportedTotalSupportsStr = formData.get('selfReportedTotalSupports') ? String(formData.get('selfReportedTotalSupports')) : '';
+  const selfReportedTotalSupports = selfReportedTotalSupportsStr && selfReportedTotalSupportsStr !== '0'
+    ? parseInt(selfReportedTotalSupportsStr, 10)
     : null;
-  const selfReportedTotalPlacements = formData.get('selfReportedTotalPlacements')
-    ? parseInt(String(formData.get('selfReportedTotalPlacements')), 10)
-    : null;
-  const selfReportedAverageAnnualIncome = formData.get('selfReportedAverageAnnualIncome')
-    ? parseInt(String(formData.get('selfReportedAverageAnnualIncome')), 10)
+  
+  const selfReportedTotalPlacementsStr = formData.get('selfReportedTotalPlacements') ? String(formData.get('selfReportedTotalPlacements')) : '';
+  const selfReportedTotalPlacements = selfReportedTotalPlacementsStr && selfReportedTotalPlacementsStr !== '0'
+    ? parseInt(selfReportedTotalPlacementsStr, 10)
     : null;
 
   // 後方互換性のため、experienceYearsとtotalSupportCountも更新
@@ -105,10 +116,10 @@ export async function updateConsultantProfile(formData: FormData) {
     previousJobFunction: previousJobFunction || undefined,
     previousCompanies: previousCompanies.length > 0 ? previousCompanies : undefined,
     // 自己申告実績（後方互換性のため、Consultantモデルに直接保存）
+    // 数値系は空＝非公開（0は表示しない）
     selfReportedCareerYears: selfReportedCareerYears || undefined,
     selfReportedTotalSupports: selfReportedTotalSupports || undefined,
     selfReportedTotalPlacements: selfReportedTotalPlacements || undefined,
-    selfReportedAverageAnnualIncome: selfReportedAverageAnnualIncome || undefined,
     // 既存フィールドとの互換性
     experienceYears: selfReportedCareerYears || undefined,
     totalSupportCount: selfReportedTotalSupports || undefined,

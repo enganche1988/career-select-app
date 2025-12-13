@@ -18,59 +18,39 @@ type Props = {
 type SortOption = 'recommended' | 'score-high' | 'score-low' | 'reviews-high';
 
 export default function ConsultantsClient({ consultants: initialConsultants }: Props) {
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-  const [selectedCompanyTypes, setSelectedCompanyTypes] = useState<string[]>([]);
-  const [keyword, setKeyword] = useState('');
+  const [selectedAgeRange, setSelectedAgeRange] = useState<string | null>(null);
+  const [selectedEducation, setSelectedEducation] = useState<string | null>(null);
+  const [selectedExpertiseTags, setSelectedExpertiseTags] = useState<string[]>([]);
+  const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
+  const [selectedJobFunction, setSelectedJobFunction] = useState<string | null>(null);
+  const [onlineOnly, setOnlineOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('recommended');
 
-  // 全職種・企業タイプを抽出（型安全な変換を使用）
-  const allRoles = useMemo(() => {
-    const rolesSet = new Set<string>();
-    initialConsultants.forEach(c => {
-      const roles = parseStringArray(c.expertiseRoles);
-      roles.forEach(r => rolesSet.add(r));
-    });
-    return Array.from(rolesSet).sort();
-  }, [initialConsultants]);
-
-  const allCompanyTypes = useMemo(() => {
-    const typesSet = new Set<string>();
-    initialConsultants.forEach(c => {
-      const types = parseStringArray(c.expertiseCompanyTypes);
-      types.forEach(t => typesSet.add(t));
-    });
-    return Array.from(typesSet).sort();
-  }, [initialConsultants]);
-
-  // フィルタリング
+  // フィルタリング（即更新）
   const filteredConsultants = useMemo(() => {
     let filtered = initialConsultants.filter(c => {
-      // 職種フィルタ（型安全な変換を使用）
-      if (selectedRoles.length > 0) {
-        const roles = parseStringArray(c.expertiseRoles);
-        // 新規検索用フィールドも考慮
+      // 年代フィルタ
+      if (selectedAgeRange && c.ageRange !== selectedAgeRange) return false;
+
+      // 学歴フィルタ
+      if (selectedEducation && c.education !== selectedEducation) return false;
+
+      // 得意領域タグフィルタ
+      if (selectedExpertiseTags.length > 0) {
         const specialtyJobFunctions = Array.isArray(c.specialtyJobFunctions) ? c.specialtyJobFunctions : [];
-        const allJobFunctions = [...roles, ...specialtyJobFunctions];
-        if (!selectedRoles.some(r => allJobFunctions.includes(r))) return false;
+        const expertiseRoles = parseStringArray(c.expertiseRoles);
+        const allTags = [...specialtyJobFunctions, ...expertiseRoles];
+        if (!selectedExpertiseTags.some(tag => allTags.includes(tag))) return false;
       }
 
-      // 企業タイプフィルタ（型安全な変換を使用）
-      if (selectedCompanyTypes.length > 0) {
-        const types = parseStringArray(c.expertiseCompanyTypes);
-        if (!selectedCompanyTypes.some(t => types.includes(t))) return false;
-      }
+      // 前職業界フィルタ
+      if (selectedIndustry && c.previousIndustry !== selectedIndustry) return false;
 
-      // キーワード検索
-      if (keyword.trim()) {
-        const searchLower = keyword.toLowerCase();
-        const searchableText = [
-          c.name,
-          c.specialties,
-          c.achievementsSummary || '',
-          c.bio || '',
-        ].join(' ').toLowerCase();
-        if (!searchableText.includes(searchLower)) return false;
-      }
+      // 前職職種フィルタ
+      if (selectedJobFunction && c.previousJobFunction !== selectedJobFunction) return false;
+
+      // オンライン可否フィルタ（schedulerUrlまたはtimelexUrlがあるか）
+      if (onlineOnly && !c.schedulerUrl && !c.timelexUrl) return false;
 
       return true;
     });
@@ -104,12 +84,24 @@ export default function ConsultantsClient({ consultants: initialConsultants }: P
     });
 
     return filtered;
-  }, [initialConsultants, selectedRoles, selectedCompanyTypes, keyword, sortBy]);
+  }, [
+    initialConsultants, 
+    selectedAgeRange,
+    selectedEducation,
+    selectedExpertiseTags,
+    selectedIndustry,
+    selectedJobFunction,
+    onlineOnly,
+    sortBy
+  ]);
 
   const handleReset = () => {
-    setSelectedRoles([]);
-    setSelectedCompanyTypes([]);
-    setKeyword('');
+    setSelectedAgeRange(null);
+    setSelectedEducation(null);
+    setSelectedExpertiseTags([]);
+    setSelectedIndustry(null);
+    setSelectedJobFunction(null);
+    setOnlineOnly(false);
     setSortBy('recommended');
   };
 
@@ -119,14 +111,18 @@ export default function ConsultantsClient({ consultants: initialConsultants }: P
         {/* 左サイドバー */}
         <aside className="w-full md:w-64 shrink-0">
           <FilterSidebar
-            allRoles={allRoles}
-            allCompanyTypes={allCompanyTypes}
-            selectedRoles={selectedRoles}
-            selectedCompanyTypes={selectedCompanyTypes}
-            keyword={keyword}
-            onRolesChange={setSelectedRoles}
-            onCompanyTypesChange={setSelectedCompanyTypes}
-            onKeywordChange={setKeyword}
+            selectedAgeRange={selectedAgeRange}
+            selectedEducation={selectedEducation}
+            selectedExpertiseTags={selectedExpertiseTags}
+            selectedIndustry={selectedIndustry}
+            selectedJobFunction={selectedJobFunction}
+            onlineOnly={onlineOnly}
+            onAgeRangeChange={setSelectedAgeRange}
+            onEducationChange={setSelectedEducation}
+            onExpertiseTagsChange={setSelectedExpertiseTags}
+            onIndustryChange={setSelectedIndustry}
+            onJobFunctionChange={setSelectedJobFunction}
+            onOnlineOnlyChange={setOnlineOnly}
             onReset={handleReset}
           />
         </aside>
@@ -160,8 +156,41 @@ export default function ConsultantsClient({ consultants: initialConsultants }: P
             </div>
           </div>
           
-          {/* カードグリッド */}
-          <ConsultantGrid consultants={filteredConsultants} />
+          {/* 0件時の専用UI */}
+          {filteredConsultants.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+              <div className="max-w-md mx-auto">
+                <svg
+                  className="w-16 h-16 mx-auto text-gray-400 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  条件に合うコンサルタントが見つかりませんでした
+                </h2>
+                <p className="text-sm text-gray-600 mb-6">
+                  条件を少し広げてみてください
+                </p>
+                <button
+                  onClick={handleReset}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  フィルターをリセット
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* カードグリッド */
+            <ConsultantGrid consultants={filteredConsultants} />
+          )}
         </main>
       </div>
     </div>
