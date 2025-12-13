@@ -1,4 +1,17 @@
 import { prisma } from '@/lib/prisma';
+
+// undefined を含む/単一文字列/配列 どれでも安全に string[] にする
+function parseStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
 import { updateConsultantProfile } from './actions';
 import Link from 'next/link';
 
