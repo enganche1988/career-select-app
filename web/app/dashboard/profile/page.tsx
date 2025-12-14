@@ -12,6 +12,7 @@ import {
   SPECIALTY_JOB_FUNCTIONS,
 } from '@/lib/constants/profileOptions';
 import ConsultantSelector from './ConsultantSelector';
+import CreateConsultantForm from '../CreateConsultantForm';
 
 // parseStringArray関数をファイル内に直接定義（importに頼らない）
 function parseStringArray(value: unknown): string[] {
