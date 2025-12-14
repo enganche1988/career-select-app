@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma';
-import { toggleConsultationStatus } from './actions';
+import { toggleConsultationStatus, createConsultant } from './actions';
 import Link from 'next/link';
 import ConsultantSelectorClient from './ConsultantSelectorClient';
+import CreateConsultantForm from './CreateConsultantForm';
 
 async function getCurrentConsultant(consultantId?: string) {
   try {
@@ -77,7 +78,11 @@ export default async function DashboardPage({
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2">コンサルタントダッシュボード</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-2xl font-bold">コンサルタントダッシュボード</h2>
+          {/* 新規コンサルタント追加ボタン（Adminのみ表示） */}
+          <CreateConsultantForm />
+        </div>
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm text-gray-600">
             現在表示中のコンサルタント: <span className="font-semibold text-blue-700">{consultant.name}</span>
