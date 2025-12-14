@@ -121,7 +121,7 @@ export default async function ConsultantProfileEditPage({
         )}
       </div>
 
-      <form action={updateConsultantProfile} encType="multipart/form-data" className="space-y-6">
+      <form action={updateConsultantProfile} className="space-y-6">
         <input type="hidden" name="consultantId" value={consultant.id} />
 
         {/* 基本情報 */}
