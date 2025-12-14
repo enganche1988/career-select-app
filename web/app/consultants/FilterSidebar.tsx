@@ -6,7 +6,7 @@ import {
   EDUCATION_CATEGORIES,
   INDUSTRIES,
   JOB_FUNCTIONS,
-  EXPERTISE_TAGS,
+  SPECIALTY_JOB_FUNCTIONS,
 } from '@/lib/constants/profileOptions';
 
 type Props = {
