@@ -58,9 +58,32 @@ export async function updateConsultantProfile(formData: FormData) {
   const expertiseRoles = formData.getAll('expertiseRoles').map(String);
   const expertiseCompanyTypes = formData.getAll('expertiseCompanyTypes').map(String);
   
+  // その他（自由入力）を取得
+  const expertiseCompanyTypesOther = formData.get('expertiseCompanyTypesOther') ? String(formData.get('expertiseCompanyTypesOther')) : '';
+  const specialtyIndustriesOther = formData.get('specialtyIndustriesOther') ? String(formData.get('specialtyIndustriesOther')) : '';
+  const specialtyJobFunctionsOther = formData.get('specialtyJobFunctionsOther') ? String(formData.get('specialtyJobFunctionsOther')) : '';
+  
   // 検索用配列フィールド（新規）
-  const specialtyIndustries = formData.getAll('specialtyIndustries').map(String);
-  const specialtyJobFunctions = formData.getAll('specialtyJobFunctions').map(String);
+  let specialtyIndustries = formData.getAll('specialtyIndustries').map(String);
+  let specialtyJobFunctions = formData.getAll('specialtyJobFunctions').map(String);
+  
+  // その他（自由入力）を配列に追加
+  if (specialtyIndustriesOther.trim()) {
+    const otherIndustries = specialtyIndustriesOther.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    specialtyIndustries = [...specialtyIndustries, ...otherIndustries];
+  }
+  
+  if (specialtyJobFunctionsOther.trim()) {
+    const otherJobFunctions = specialtyJobFunctionsOther.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    specialtyJobFunctions = [...specialtyJobFunctions, ...otherJobFunctions];
+  }
+  
+  // 企業タイプのその他（自由入力）を配列に追加
+  let finalExpertiseCompanyTypes = expertiseCompanyTypes;
+  if (expertiseCompanyTypesOther.trim()) {
+    const otherCompanyTypes = expertiseCompanyTypesOther.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    finalExpertiseCompanyTypes = [...finalExpertiseCompanyTypes, ...otherCompanyTypes];
+  }
 
   // 検索軸プロフィール
   const ageRange = formData.get('ageRange') ? String(formData.get('ageRange')) : null;
@@ -105,7 +128,7 @@ export async function updateConsultantProfile(formData: FormData) {
     profileSummary,
     achievementsSummary,
     expertiseRoles: expertiseRoles.length > 0 ? expertiseRoles : undefined,
-    expertiseCompanyTypes: expertiseCompanyTypes.length > 0 ? expertiseCompanyTypes : undefined,
+    expertiseCompanyTypes: finalExpertiseCompanyTypes.length > 0 ? finalExpertiseCompanyTypes : undefined,
     // 検索用配列フィールド（新規、検索頻度が高いため配列型で実装）
     specialtyIndustries: specialtyIndustries.length > 0 ? specialtyIndustries : [],
     specialtyJobFunctions: specialtyJobFunctions.length > 0 ? specialtyJobFunctions : [],

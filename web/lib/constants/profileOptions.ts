@@ -69,12 +69,14 @@ export function getEducationCategoryDisplayLabel(value: string | null | undefine
 // ============================================
 export const INDUSTRIES = [
   { value: 'it_internet', label: 'IT・インターネット' },
-  { value: 'saas_startup', label: 'SaaS / スタートアップ' },
-  { value: 'mega_venture', label: 'メガベンチャー' },
+  { value: 'saas', label: 'SaaS' },
   { value: 'manufacturing', label: '製造業' },
   { value: 'finance', label: '金融' },
   { value: 'consulting', label: 'コンサルティング' },
   { value: 'retail', label: '小売・流通' },
+  { value: 'hr_consulting', label: '人材・コンサル' },
+  { value: 'advertising_media', label: '広告・メディア' },
+  { value: 'other_service', label: 'その他サービス' },
   { value: 'other', label: 'その他' },
 ] as const;
 
@@ -82,12 +84,69 @@ export type Industry = typeof INDUSTRIES[number]['value'];
 
 export const INDUSTRY_LABELS: Record<Industry, string> = {
   'it_internet': 'IT・インターネット',
-  'saas_startup': 'SaaS / スタートアップ',
-  'mega_venture': 'メガベンチャー',
+  'saas': 'SaaS',
   'manufacturing': '製造業',
   'finance': '金融',
   'consulting': 'コンサルティング',
   'retail': '小売・流通',
+  'hr_consulting': '人材・コンサル',
+  'advertising_media': '広告・メディア',
+  'other_service': 'その他サービス',
+  'other': 'その他',
+};
+
+// ============================================
+// 得意企業タイプ（Company Type）
+// ============================================
+export const COMPANY_TYPES = [
+  { value: 'large', label: '大企業' },
+  { value: 'mega_venture', label: 'メガベンチャー' },
+  { value: 'startup', label: 'スタートアップ' },
+  { value: 'foreign', label: '外資系企業' },
+  { value: 'sme', label: '中小企業' },
+  { value: 'other', label: 'その他（自由入力）' },
+] as const;
+
+export type CompanyType = typeof COMPANY_TYPES[number]['value'];
+
+export const COMPANY_TYPE_LABELS: Record<CompanyType, string> = {
+  'large': '大企業',
+  'mega_venture': 'メガベンチャー',
+  'startup': 'スタートアップ',
+  'foreign': '外資系企業',
+  'sme': '中小企業',
+  'other': 'その他',
+};
+
+// ============================================
+// 得意業界（Specialty Industries）
+// 事業内容ベースの分類
+// ============================================
+export const SPECIALTY_INDUSTRIES = [
+  { value: 'it_internet', label: 'IT・インターネット' },
+  { value: 'saas', label: 'SaaS' },
+  { value: 'manufacturing', label: '製造業' },
+  { value: 'finance', label: '金融' },
+  { value: 'consulting', label: 'コンサルティング' },
+  { value: 'retail', label: '小売・流通' },
+  { value: 'hr_consulting', label: '人材・コンサル' },
+  { value: 'advertising_media', label: '広告・メディア' },
+  { value: 'other_service', label: 'その他サービス' },
+  { value: 'other', label: 'その他（自由入力）' },
+] as const;
+
+export type SpecialtyIndustry = typeof SPECIALTY_INDUSTRIES[number]['value'];
+
+export const SPECIALTY_INDUSTRY_LABELS: Record<SpecialtyIndustry, string> = {
+  'it_internet': 'IT・インターネット',
+  'saas': 'SaaS',
+  'manufacturing': '製造業',
+  'finance': '金融',
+  'consulting': 'コンサルティング',
+  'retail': '小売・流通',
+  'hr_consulting': '人材・コンサル',
+  'advertising_media': '広告・メディア',
+  'other_service': 'その他サービス',
   'other': 'その他',
 };
 
@@ -121,7 +180,7 @@ export const JOB_FUNCTION_LABELS: Record<JobFunction, string> = {
 };
 
 // ============================================
-// 得意領域タグ（検索用）
+// 得意領域タグ（検索用・後方互換性のため残す）
 // ============================================
 export const EXPERTISE_TAGS = [
   { value: 'engineer', label: 'エンジニア' },
@@ -145,6 +204,36 @@ export const EXPERTISE_TAG_LABELS: Record<ExpertiseTag, string> = {
   'hr': '人事',
   'finance': '経理・財務',
   'consultant': 'コンサルタント',
+};
+
+// ============================================
+// 得意職種（Specialty Job Functions）
+// 転職検索で使われる粒度に揃える
+// ============================================
+export const SPECIALTY_JOB_FUNCTIONS = [
+  { value: 'engineer', label: 'エンジニア' },
+  { value: 'pdm_pm', label: 'PdM / PM' },
+  { value: 'designer', label: 'デザイナー' },
+  { value: 'sales', label: '営業' },
+  { value: 'cs', label: 'カスタマーサクセス' },
+  { value: 'hr_recruiting', label: '人事 / 採用' },
+  { value: 'accounting_finance', label: '経理・財務' },
+  { value: 'consultant', label: 'コンサルタント' },
+  { value: 'other', label: 'その他（自由入力）' },
+] as const;
+
+export type SpecialtyJobFunction = typeof SPECIALTY_JOB_FUNCTIONS[number]['value'];
+
+export const SPECIALTY_JOB_FUNCTION_LABELS: Record<SpecialtyJobFunction, string> = {
+  'engineer': 'エンジニア',
+  'pdm_pm': 'PdM / PM',
+  'designer': 'デザイナー',
+  'sales': '営業',
+  'cs': 'カスタマーサクセス',
+  'hr_recruiting': '人事 / 採用',
+  'accounting_finance': '経理・財務',
+  'consultant': 'コンサルタント',
+  'other': 'その他',
 };
 
 // ============================================
@@ -188,5 +277,29 @@ export function getJobFunctionLabel(value: string | null | undefined): string {
  */
 export function getExpertiseTagLabel(value: string): string {
   return EXPERTISE_TAG_LABELS[value as ExpertiseTag] || value;
+}
+
+/**
+ * 企業タイプのラベルを取得
+ */
+export function getCompanyTypeLabel(value: string | null | undefined): string {
+  if (!value) return '';
+  return COMPANY_TYPE_LABELS[value as CompanyType] || value;
+}
+
+/**
+ * 得意業界のラベルを取得
+ */
+export function getSpecialtyIndustryLabel(value: string | null | undefined): string {
+  if (!value) return '';
+  return SPECIALTY_INDUSTRY_LABELS[value as SpecialtyIndustry] || value;
+}
+
+/**
+ * 得意職種のラベルを取得
+ */
+export function getSpecialtyJobFunctionLabel(value: string | null | undefined): string {
+  if (!value) return '';
+  return SPECIALTY_JOB_FUNCTION_LABELS[value as SpecialtyJobFunction] || value;
 }
 

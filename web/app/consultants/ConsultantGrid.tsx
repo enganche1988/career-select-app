@@ -9,6 +9,7 @@ import {
   getIndustryLabel,
   getJobFunctionLabel,
   getExpertiseTagLabel,
+  getSpecialtyJobFunctionLabel,
 } from '@/lib/constants/profileOptions';
 
 type ConsultantWithReviews = Consultant & {
@@ -117,7 +118,7 @@ export default function ConsultantGrid({ consultants }: Props) {
                         key={i} 
                         className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md"
                       >
-                        {getExpertiseTagLabel(tag)}
+                        {getSpecialtyJobFunctionLabel(tag) || getExpertiseTagLabel(tag)}
                       </span>
                     ))}
                     {remainingTagsCount > 0 && (

@@ -8,6 +8,9 @@ import {
   getJobFunctionLabel,
   getExpertiseTagLabel,
   getEducationCategoryLabel,
+  getCompanyTypeLabel,
+  getSpecialtyIndustryLabel,
+  getSpecialtyJobFunctionLabel,
 } from '@/lib/constants/profileOptions';
 import { parseStringArray } from '@/lib/types/consultant';
 import { getMockConsultant, type ConsultantWithReviews } from '@/lib/mockData';
@@ -189,7 +192,9 @@ export default async function ConsultantDetailPage({
 
   // 型安全な変換を使用
   const specialtyJobFunctions = Array.isArray(consultant.specialtyJobFunctions) ? consultant.specialtyJobFunctions : [];
+  const specialtyIndustries = Array.isArray(consultant.specialtyIndustries) ? consultant.specialtyIndustries : [];
   const expertiseRoles = parseStringArray(consultant.expertiseRoles);
+  const expertiseCompanyTypes = parseStringArray(consultant.expertiseCompanyTypes);
   const expertiseTags = specialtyJobFunctions.length > 0 ? specialtyJobFunctions : expertiseRoles;
 
   // 検索軸プロフィール
@@ -268,15 +273,43 @@ export default async function ConsultantDetailPage({
               </div>
             )}
             
-            {/* 得意領域タグ */}
+            {/* 得意領域タグ（得意職種） */}
             {expertiseTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {expertiseTags.map((tag, i) => (
                   <span
                     key={i}
                     className="inline-block px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-semibold border border-blue-100"
                   >
-                    {getExpertiseTagLabel(tag)}
+                    {getSpecialtyJobFunctionLabel(tag) || getExpertiseTagLabel(tag)}
+                  </span>
+                ))}
+              </div>
+            )}
+            
+            {/* 得意業界 */}
+            {specialtyIndustries.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {specialtyIndustries.map((industry, i) => (
+                  <span
+                    key={i}
+                    className="inline-block px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-semibold border border-green-100"
+                  >
+                    {getSpecialtyIndustryLabel(industry) || industry}
+                  </span>
+                ))}
+              </div>
+            )}
+            
+            {/* 得意企業タイプ */}
+            {expertiseCompanyTypes.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {expertiseCompanyTypes.map((type, i) => (
+                  <span
+                    key={i}
+                    className="inline-block px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-semibold border border-purple-100"
+                  >
+                    {getCompanyTypeLabel(type) || type}
                   </span>
                 ))}
               </div>

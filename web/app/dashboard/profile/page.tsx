@@ -7,6 +7,9 @@ import {
   INDUSTRIES,
   JOB_FUNCTIONS,
   EXPERTISE_TAGS,
+  COMPANY_TYPES,
+  SPECIALTY_INDUSTRIES,
+  SPECIALTY_JOB_FUNCTIONS,
 } from '@/lib/constants/profileOptions';
 import ConsultantSelector from './ConsultantSelector';
 
@@ -34,14 +37,6 @@ const EXPERTISE_ROLES = [
   '営業',
   'マーケティング',
   'カスタマーサクセス',
-];
-
-const COMPANY_TYPES = [
-  '大企業',
-  'メガベンチャー',
-  'スタートアップ',
-  '外資系',
-  '上場準備企業',
 ];
 
 async function getCurrentConsultant(consultantId?: string) {
@@ -290,31 +285,49 @@ export default async function ConsultantProfileEditPage({
                 ))}
               </div>
             </div>
+            {/* 得意企業タイプ（検索用） */}
             <div>
-              <label className="block mb-2 font-medium text-sm">得意な企業タイプ（既存フィールド）</label>
+              <label className="block mb-2 font-medium text-sm">得意企業タイプ *（検索用、複数選択可）</label>
+              <p className="text-xs text-gray-500 mb-2">検索・マッチングに使用されます</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {COMPANY_TYPES.map((type) => (
                   <label
-                    key={type}
+                    key={type.value}
                     className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       name="expertiseCompanyTypes"
-                      value={type}
-                      defaultChecked={currentCompanyTypes.includes(type)}
+                      value={type.value}
+                      defaultChecked={currentCompanyTypes.includes(type.value) || currentCompanyTypes.includes(type.label)}
                       className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm">{type}</span>
+                    <span className="text-sm">{type.label}</span>
                   </label>
                 ))}
               </div>
+              {/* その他（自由入力）の入力欄 */}
+              {currentCompanyTypes.some(t => !COMPANY_TYPES.some(ct => ct.value === t || ct.label === t)) && (
+                <div className="mt-3">
+                  <label className="block mb-1 font-medium text-sm text-gray-700">その他（自由入力）</label>
+                  <input
+                    type="text"
+                    name="expertiseCompanyTypesOther"
+                    defaultValue={currentCompanyTypes.filter(t => !COMPANY_TYPES.some(ct => ct.value === t || ct.label === t)).join(', ')}
+                    className="border rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="例：上場準備企業、その他"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">カンマ区切りで複数入力可能</p>
+                </div>
+              )}
             </div>
+
+            {/* 得意業界（検索用） */}
             <div>
               <label className="block mb-2 font-medium text-sm">得意業界 *（検索用、複数選択可）</label>
-              <p className="text-xs text-gray-500 mb-2">検索・マッチングに使用されます</p>
+              <p className="text-xs text-gray-500 mb-2">検索・マッチングに使用されます（事業内容ベース）</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {INDUSTRIES.map((industry) => (
+                {SPECIALTY_INDUSTRIES.map((industry) => (
                   <label
                     key={industry.value}
                     className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
@@ -332,28 +345,62 @@ export default async function ConsultantProfileEditPage({
                   </label>
                 ))}
               </div>
+              {/* その他（自由入力）の入力欄 */}
+              <div className="mt-3">
+                <label className="block mb-1 font-medium text-sm text-gray-700">その他（自由入力）</label>
+                <input
+                  type="text"
+                  name="specialtyIndustriesOther"
+                  defaultValue={Array.isArray((consultant as any).specialtyIndustries)
+                    ? (consultant as any).specialtyIndustries
+                        .filter((v: string) => !SPECIALTY_INDUSTRIES.some(si => si.value === v))
+                        .join(', ')
+                    : ''}
+                  className="border rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="例：ゲーム、不動産、その他"
+                />
+                <p className="text-xs text-gray-500 mt-1">カンマ区切りで複数入力可能（表示はするが、検索上は補助的な扱い）</p>
+              </div>
             </div>
+
+            {/* 得意職種（検索用） */}
             <div>
               <label className="block mb-2 font-medium text-sm">得意職種 *（検索用、複数選択可）</label>
-              <p className="text-xs text-gray-500 mb-2">検索・マッチングに使用されます</p>
+              <p className="text-xs text-gray-500 mb-2">検索・マッチングに使用されます（転職検索粒度に合わせる）</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {EXPERTISE_TAGS.map((tag) => (
+                {SPECIALTY_JOB_FUNCTIONS.map((job) => (
                   <label
-                    key={tag.value}
+                    key={job.value}
                     className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       name="specialtyJobFunctions"
-                      value={tag.value}
+                      value={job.value}
                       defaultChecked={Array.isArray((consultant as any).specialtyJobFunctions) 
-                        ? (consultant as any).specialtyJobFunctions.includes(tag.value)
+                        ? (consultant as any).specialtyJobFunctions.includes(job.value)
                         : false}
                       className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm">{tag.label}</span>
+                    <span className="text-sm">{job.label}</span>
                   </label>
                 ))}
+              </div>
+              {/* その他（自由入力）の入力欄 */}
+              <div className="mt-3">
+                <label className="block mb-1 font-medium text-sm text-gray-700">その他（自由入力）</label>
+                <input
+                  type="text"
+                  name="specialtyJobFunctionsOther"
+                  defaultValue={Array.isArray((consultant as any).specialtyJobFunctions)
+                    ? (consultant as any).specialtyJobFunctions
+                        .filter((v: string) => !SPECIALTY_JOB_FUNCTIONS.some(sjf => sjf.value === v))
+                        .join(', ')
+                    : ''}
+                  className="border rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="例：データサイエンティスト、その他"
+                />
+                <p className="text-xs text-gray-500 mt-1">カンマ区切りで複数入力可能（表示はするが、検索上は補助的な扱い）</p>
               </div>
             </div>
           </div>

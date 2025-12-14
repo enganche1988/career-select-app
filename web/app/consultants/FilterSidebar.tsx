@@ -110,9 +110,9 @@ export default function FilterSidebar({
 
       {/* 得意領域（複数選択・タグ） */}
       <div className="mb-6">
-        <h4 className="text-sm font-bold text-gray-900 mb-3">得意領域</h4>
+        <h4 className="text-sm font-bold text-gray-900 mb-3">得意職種</h4>
         <div className="space-y-2 max-h-48 overflow-y-auto">
-          {EXPERTISE_TAGS.map((tag) => (
+          {SPECIALTY_JOB_FUNCTIONS.map((tag) => (
             <label key={tag.value} className="flex items-center cursor-pointer group py-1 hover:bg-gray-50 rounded px-1 -mx-1 transition-colors">
               <input
                 type="checkbox"
