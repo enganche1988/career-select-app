@@ -100,7 +100,11 @@ export default async function ConsultantProfileEditPage({
       />
       
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2">プロフィール編集</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-2xl font-bold">プロフィール編集</h2>
+          {/* 新規コンサルタント追加ボタン（Adminのみ表示） */}
+          <CreateConsultantForm />
+        </div>
         <p className="text-sm text-gray-600 mb-1">
           このプロフィールは、{' '}
           <Link
