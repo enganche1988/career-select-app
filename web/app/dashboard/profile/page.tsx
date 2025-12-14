@@ -160,15 +160,26 @@ export default async function ConsultantProfileEditPage({
               <p className="text-xs text-gray-500 mt-1">一言で自分の経歴や専門性を表現してください</p>
             </div>
             <div>
-              <label className="block mb-1 font-medium text-sm">サムネイル画像URL</label>
+              <label className="block mb-1 font-medium text-sm">サムネイル画像</label>
+              {consultant.thumbnailUrl && (
+                <div className="mb-3">
+                  <img
+                    src={consultant.thumbnailUrl}
+                    alt="現在のサムネイル"
+                    className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                  />
+                </div>
+              )}
               <input
-                name="thumbnailUrl"
-                type="url"
-                defaultValue={consultant.thumbnailUrl || ''}
-                className="border rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="https://example.com/image.jpg"
+                name="thumbnailFile"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               />
-              <p className="text-xs text-gray-500 mt-1">顔写真やプロフィール画像のURLを入力してください</p>
+              <input type="hidden" name="existingThumbnailUrl" value={consultant.thumbnailUrl || ''} />
+              <p className="text-xs text-gray-500 mt-1">
+                JPEG, PNG, WebP, GIF形式、最大5MB。推奨サイズ: 400x400px
+              </p>
             </div>
           </div>
         </div>

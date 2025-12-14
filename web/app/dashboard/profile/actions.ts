@@ -12,7 +12,9 @@ export async function updateConsultantProfile(formData: FormData) {
   const headline = formData.get('headline') ? String(formData.get('headline')) : null;
   
   // ファイルアップロード処理
-  let thumbnailUrl = formData.get('thumbnailUrl') ? String(formData.get('thumbnailUrl')) : null;
+  // 既存のURLを保持（ファイルがアップロードされない場合）
+  const existingThumbnailUrl = formData.get('existingThumbnailUrl') ? String(formData.get('existingThumbnailUrl')) : null;
+  let thumbnailUrl = existingThumbnailUrl;
   const thumbnailFile = formData.get('thumbnailFile') as File | null;
   
   if (thumbnailFile && thumbnailFile.size > 0) {
