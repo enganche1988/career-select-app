@@ -77,3 +77,5 @@ rm -rf prisma/
 4. **VercelのRoot Directory設定を再確認**
    - 必ず `web` に設定されていることを確認
 
+
+

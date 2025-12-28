@@ -71,3 +71,5 @@ Vercelのビルド設定を明示的に指定しました。
 - ルートディレクトリに`prisma`ディレクトリを作成しない
 - VercelのRoot Directoryは必ず`web`に設定
 
+
+

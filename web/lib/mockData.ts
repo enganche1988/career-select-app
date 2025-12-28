@@ -8,6 +8,18 @@ export type ConsultantWithReviews = Consultant & {
   reviews: Review[];
   consultations?: any[];
   user?: any;
+  answers?: Array<{
+    id: string;
+    content: string;
+    createdAt: Date;
+    question: {
+      id: string;
+      title: string;
+    };
+  }>;
+  _count?: {
+    answers: number;
+  };
 };
 
 export function getMockConsultants(): ConsultantWithReviews[] {

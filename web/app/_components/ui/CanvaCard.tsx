@@ -24,3 +24,5 @@ export default function CanvaCard({ children, className = '', hover = true }: Ca
   );
 }
 
+
+

@@ -171,3 +171,5 @@ Consultant {
 - **自己申告実績**: `Consultant`モデルに直接保存（Phase 2で`ConsultantProfile`に移行予定）
 - **platform実績**: 未実装（Phase 2で`ConsultantStats`モデルとして追加予定）
 
+
+

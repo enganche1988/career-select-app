@@ -158,6 +158,21 @@ export default async function ConsultantDetailPage({
         reviews: true,
         consultations: true,
         user: true,
+        answers: {
+          take: 10, // 最新10件程度
+          orderBy: { createdAt: 'desc' },
+          include: {
+            question: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: { answers: true },
+        },
       },
     });
     consultant = result as ConsultantWithReviews | null;
@@ -477,7 +492,42 @@ export default async function ConsultantDetailPage({
         </div>
       )}
 
-      {/* ⑤ 支援スタイル・メッセージ */}
+      {/* ⑤ この人のQ&A回答一覧（最新10件程度） */}
+      {consultant.answers && consultant.answers.length > 0 && (
+        <div className="bg-white rounded-3xl shadow-md border border-gray-200 p-8 mb-12" id="answers">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">この人のQ&A回答</h2>
+          <div className="space-y-6">
+            {consultant.answers.map((answer) => (
+              <div key={answer.id} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
+                <Link
+                  href={`/questions/${answer.question.id}`}
+                  className="text-lg font-bold text-gray-900 mb-3 block hover:text-blue-600 transition-colors"
+                >
+                  {answer.question.title}
+                </Link>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line text-base mb-3">
+                  {answer.content}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span>{formatDateJP(answer.createdAt.toISOString())}</span>
+                </div>
+              </div>
+            ))}
+            {consultant._count && consultant._count.answers > 10 && (
+              <div className="text-center pt-4">
+                <Link
+                  href={`/questions?consultant=${consultant.id}`}
+                  className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                >
+                  すべての回答を見る（{consultant._count.answers}件）
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ⑥ 支援スタイル・メッセージ */}
       {consultant.profileSummary && (
         <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8 mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">支援スタイル・メッセージ</h2>
@@ -487,7 +537,7 @@ export default async function ConsultantDetailPage({
         </div>
       )}
 
-      {/* ⑥ CTA「相談してみる」 */}
+      {/* ⑦ CTA「相談してみる」 */}
       <div className="bg-gradient-to-br from-blue-50 via-blue-100 to-white rounded-3xl shadow-lg border border-blue-200 p-10 text-center mb-12">
         <p className="text-gray-800 mb-6 text-lg font-medium">
           このコンサルタントに相談してみたいと感じたら、こちらからご予約ください。

@@ -8,7 +8,19 @@ import { calcConsultantExpectedScore } from '@/lib/consultantScore';
 import { parseStringArray } from '@/lib/types/consultant';
 
 type ConsultantWithReviews = Consultant & {
-  reviews: Array<{ type: string; score: number }>;
+  reviews: Array<{ type: string; score: number; isApproved?: boolean }>;
+  _count: {
+    answers: number;
+  };
+  answers: Array<{
+    id: string;
+    content: string;
+    createdAt: Date;
+    question: {
+      id: string;
+      title: string;
+    };
+  }>;
 };
 
 type Props = {

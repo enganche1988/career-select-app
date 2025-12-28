@@ -31,6 +31,7 @@ model Consultant {
   user                  User?          @relation(fields: [userId], references: [id])
   consultations         Consultation[]
   reviews               Review[]
+  answers               Answer[]
   // ↓↓↓ プロフィール関連フィールド
   headline              String? // 一言キャッチ（例：「元大手人事／スタートアップ採用支援」）
   profileSummary        String? // 自己紹介文（中程度の長さ）
@@ -98,4 +99,31 @@ model Review {
   meta           Json? // 属性情報・サブ評価・改善コメントなどをJSONで保存
   isApproved     Boolean       @default(false) // 運営承認フラグ
   createdAt      DateTime      @default(now())
+}
+
+model Question {
+  id              String    @id @default(uuid())
+  title           String    // 質問タイトル
+  content         String    // 質問本文
+  askerAgeRange   String?   // 質問者年代（20s_early, 20s_late, 30s_early, 30s_late, 40s_plus）
+  askerIndustry   String?   // 質問者業界
+  askerJobFunction String?  // 質問者職種
+  answers         Answer[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Answer {
+  id          String     @id @default(uuid())
+  question    Question   @relation(fields: [questionId], references: [id])
+  questionId  String
+  consultant  Consultant @relation(fields: [consultantId], references: [id])
+  consultantId String
+  content     String     // 回答本文
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([questionId])
+  @@index([consultantId])
+  @@index([createdAt])
 }

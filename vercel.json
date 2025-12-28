@@ -2,6 +2,19 @@
   "buildCommand": "cd web && npm run build",
   "installCommand": "cd web && npm install",
   "framework": "nextjs",
-  "rootDirectory": "web"
+  "rootDirectory": "web",
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    }
+  ]
 }
+
+
 

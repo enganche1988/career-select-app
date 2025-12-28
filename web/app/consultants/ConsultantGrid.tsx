@@ -14,6 +14,18 @@ import {
 
 type ConsultantWithReviews = Consultant & {
   reviews: Array<{ type: string; score: number; isApproved?: boolean }>;
+  _count: {
+    answers: number;
+  };
+  answers: Array<{
+    id: string;
+    content: string;
+    createdAt: Date;
+    question: {
+      id: string;
+      title: string;
+    };
+  }>;
 };
 
 type Props = {
@@ -21,6 +33,24 @@ type Props = {
 };
 
 export default function ConsultantGrid({ consultants }: Props) {
+  const formatDate = (date: Date) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+  };
+
+  const formatAnswerExcerpt = (content: string, maxLength: number = 120) => {
+    if (content.length <= maxLength) return content;
+    // 文の途中で切れないように、最後の句点や改行の位置で切る
+    const truncated = content.substring(0, maxLength);
+    const lastPeriod = truncated.lastIndexOf('。');
+    const lastNewline = truncated.lastIndexOf('\n');
+    const cutPoint = Math.max(lastPeriod, lastNewline);
+    if (cutPoint > maxLength * 0.7) {
+      return truncated.substring(0, cutPoint + 1) + '...';
+    }
+    return truncated + '...';
+  };
+
   return (
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {consultants.map((c) => {
@@ -56,105 +86,117 @@ export default function ConsultantGrid({ consultants }: Props) {
           ? specialtyJobFunctions 
           : expertiseRoles;
         const displayTags = expertiseTags.slice(0, 3);
-        const remainingTagsCount = expertiseTags.length - 3;
-        
-        // 自己申告実績の代表値（支援人数優先、なければ転職成功数）
-        const achievementValue = c.selfReportedTotalSupports 
-          ? `支援実績：${c.selfReportedTotalSupports}名`
-          : c.selfReportedTotalPlacements
-          ? `転職成功：${c.selfReportedTotalPlacements}名`
-          : null;
         
         return (
-          <Link
+          <div
             key={c.id}
-            href={`/consultants/${c.id}`}
-            className="group block"
+            className="flex flex-col h-full w-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
           >
-            <div className="flex flex-col h-full w-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-              {/* 1. サムネイル */}
-              <div className="relative w-full h-40 bg-gray-200 overflow-hidden">
-                {c.thumbnailUrl ? (
-                  <img 
-                    src={c.thumbnailUrl} 
-                    alt={c.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
-                    <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-4xl font-bold">
-                      {c.name.charAt(0)}
-                    </div>
-                  </div>
-                )}
+            {/* A. 上部：最小プロフィール */}
+            <div className="p-4 border-b border-gray-100">
+              <div className="text-base font-bold text-gray-900 mb-2">
+                {c.name}
               </div>
               
-              {/* 2. カード内容 */}
-              <div className="p-4 flex flex-col gap-2.5 flex-1 min-h-0">
-                {/* 2-1. 名前 */}
-                <div className="text-base font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                  {c.name}
+              {/* 検索軸プロフィール（1行・必須） */}
+              {profileParts.length > 0 ? (
+                <div className="text-xs text-gray-600 flex items-center gap-1 flex-wrap mb-2">
+                  {profileParts.map((part, i) => (
+                    <span key={i} className="flex items-center">
+                      {i > 0 && <span className="text-gray-400 mx-1">｜</span>}
+                      <span>{part}</span>
+                    </span>
+                  ))}
                 </div>
-                
-                {/* 2-2. 検索軸プロフィール（1行・必須） */}
-                {profileParts.length > 0 ? (
-                  <div className="text-xs text-gray-600 flex items-center gap-1 flex-wrap">
-                    {profileParts.map((part, i) => (
-                      <span key={i} className="flex items-center">
-                        {i > 0 && <span className="text-gray-400 mx-1">｜</span>}
-                        <span>{part}</span>
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-xs text-gray-400">プロフィール情報準備中</div>
-                )}
-                
-                {/* 2-3. 得意領域タグ（最大3、残りは +n） */}
-                {displayTags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 items-center">
-                    {displayTags.map((tag, i) => (
-                      <span 
-                        key={i} 
-                        className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md"
-                      >
-                        {getSpecialtyJobFunctionLabel(tag) || getExpertiseTagLabel(tag)}
-                      </span>
-                    ))}
-                    {remainingTagsCount > 0 && (
-                      <span className="text-xs text-gray-500 font-medium">
-                        +{remainingTagsCount}
-                      </span>
-                    )}
-                  </div>
-                )}
-                
-                {/* 2-4. 自己申告実績の代表値 */}
-                {achievementValue && (
-                  <div className="text-xs text-gray-700 font-medium">
-                    {achievementValue}
-                  </div>
-                )}
-                
-                {/* 2-5. レビューサマリ */}
+              ) : (
+                <div className="text-xs text-gray-400 mb-2">プロフィール情報準備中</div>
+              )}
+              
+              {/* 得意領域タグ（最大3） */}
+              {displayTags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 items-center mb-2">
+                  {displayTags.map((tag, i) => (
+                    <span 
+                      key={i} 
+                      className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md"
+                    >
+                      {getSpecialtyJobFunctionLabel(tag) || getExpertiseTagLabel(tag)}
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              {/* 指標ミニ */}
+              <div className="flex items-center gap-4 text-xs text-gray-600">
                 {avgScore && totalReviewCount > 0 ? (
-                  <div className="flex items-center gap-1.5 mt-auto">
-                    <div className="flex items-center gap-0.5">
+                  <>
+                    <div className="flex items-center gap-1">
                       <svg className="w-3.5 h-3.5 text-yellow-400 fill-current" viewBox="0 0 20 20">
                         <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
                       </svg>
-                      <span className="text-sm font-bold text-gray-900">{avgScore}</span>
+                      <span className="font-bold text-gray-900">{avgScore}</span>
                     </div>
-                    <span className="text-xs text-gray-500">（{totalReviewCount}件）</span>
-                  </div>
+                    <span>レビュー{totalReviewCount}件</span>
+                  </>
                 ) : (
-                  <div className="text-xs text-gray-400 mt-auto">
-                    レビュー準備中
-                  </div>
+                  <span className="text-gray-400">レビュー準備中</span>
                 )}
+                <span>回答{c._count.answers}件</span>
               </div>
             </div>
-          </Link>
+            
+            {/* B. 中央：回答一覧（固定高さ＋縦スクロール） */}
+            <div className="flex-1 min-h-0 p-4">
+              {c.answers.length > 0 ? (
+                <div className="h-64 overflow-y-auto space-y-4 pr-2">
+                  {c.answers.map((answer) => (
+                    <div key={answer.id} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                      <Link
+                        href={`/questions/${answer.question.id}`}
+                        className="text-sm font-medium text-gray-900 mb-2 block hover:text-blue-600 transition-colors line-clamp-2"
+                      >
+                        {answer.question.title}
+                      </Link>
+                      <p className="text-sm text-gray-700 line-clamp-3 mb-2">
+                        {formatAnswerExcerpt(answer.content)}
+                      </p>
+                      <div className="text-xs text-gray-500">
+                        {formatDate(answer.createdAt)}
+                      </div>
+                    </div>
+                  ))}
+                  {c._count.answers > 3 && (
+                    <Link
+                      href={`/consultants/${c.id}#answers`}
+                      className="block text-center text-sm text-blue-600 hover:text-blue-700 font-medium pt-2"
+                    >
+                      この人の回答をもっと見る
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-sm text-gray-400">
+                  回答はまだありません
+                </div>
+              )}
+            </div>
+            
+            {/* C. 下部：CTA */}
+            <div className="p-4 border-t border-gray-100 flex gap-3">
+              <Link
+                href={`/consultants/${c.id}`}
+                className="flex-1 text-center px-4 py-2 bg-gray-100 text-gray-900 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors"
+              >
+                詳細を見る
+              </Link>
+              <Link
+                href={`/consultants/${c.id}`}
+                className="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors"
+              >
+                この人に相談する
+              </Link>
+            </div>
+          </div>
         );
       })}
     </div>
